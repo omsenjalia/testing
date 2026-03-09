@@ -31,7 +31,7 @@ export function ProfileWidget({ user, onClose }: ProfileWidgetProps) {
   return (
     <>
       <div
-        className="fixed inset-0 z-[999] bg-black/5"
+        className="fixed inset-0 z-[999] bg-transparent"
         onClick={onClose}
       />
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] bg-[var(--surface)] border border-[var(--border)] rounded-[4px] p-5 z-[1000] font-mono">

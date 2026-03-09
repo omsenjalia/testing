@@ -24,6 +24,7 @@ body {
   color: var(--text-primary);
   font-family: 'IBM Plex Mono', monospace;
   overflow: hidden; /* Prevent body scroll, globe should fill viewport */
+  margin: 0;
 }
 
 @layer base {
