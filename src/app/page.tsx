@@ -3,7 +3,7 @@
 import { useState } from "react"
 import dynamic from "next/dynamic"
 import { Header } from "@/components/Header"
-import { ProfileSidebar } from "@/components/ProfileSidebar"
+import { ProfileWidget } from "@/components/ProfileWidget"
 import { useUsers } from "@/hooks/useUsers"
 import { User } from "@/types/user"
 
@@ -11,8 +11,8 @@ import { User } from "@/types/user"
 const GlobeCanvas = dynamic(() => import("@/components/GlobeCanvas"), {
   ssr: false,
   loading: () => (
-    <div className="fixed inset-0 bg-[#111111] flex items-center justify-center">
-      <p className="text-[#a0a0a0] text-[14px]">Loading builders...</p>
+    <div className="w-full h-full flex items-center justify-center font-mono text-[13px] text-[var(--text-muted)] bg-[#c8c3b8]">
+      Loading builders...
     </div>
   ),
 })
@@ -25,37 +25,39 @@ export default function Home() {
     setSelectedUser(user)
   }
 
-  const handleCloseSidebar = () => {
+  const handleCloseWidget = () => {
     setSelectedUser(null)
   }
 
   if (error) {
     return (
-      <div className="fixed inset-0 bg-[#111111] flex items-center justify-center">
-        <p className="text-red-400 text-[14px]">Failed to load builders.</p>
+      <div className="fixed inset-0 bg-[#ede9e0] flex items-center justify-center font-mono text-[14px] text-red-600">
+        Failed to load builders.
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen relative overflow-hidden bg-[#111111]">
+    <main className="min-h-screen relative overflow-hidden bg-[#ede9e0]">
       <Header userCount={users.length} />
 
-      {!isLoading && (
-        <GlobeCanvas
-          users={users}
-          onUserClick={handleUserClick}
-          sidebarOpen={!!selectedUser}
-        />
-      )}
+      <div className="fixed top-[48px] left-0 right-0 bottom-0 overflow-hidden">
+        {!isLoading && (
+          <GlobeCanvas
+            users={users}
+            onUserClick={handleUserClick}
+            selectedUser={selectedUser}
+          />
+        )}
 
-      {isLoading && (
-        <div className="fixed inset-0 bg-[#111111] flex items-center justify-center z-10">
-          <p className="text-[#a0a0a0] text-[14px]">Loading builders...</p>
-        </div>
-      )}
+        {isLoading && (
+          <div className="w-full h-full flex items-center justify-center font-mono text-[13px] text-[var(--text-muted)] bg-[#c8c3b8]">
+            Loading builders...
+          </div>
+        )}
+      </div>
 
-      <ProfileSidebar user={selectedUser} onClose={handleCloseSidebar} />
+      <ProfileWidget user={selectedUser} onClose={handleCloseWidget} />
     </main>
   )
 }

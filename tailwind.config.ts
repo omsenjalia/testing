@@ -9,8 +9,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        background: "var(--bg)",
+        foreground: "var(--text-primary)",
+      },
+      fontFamily: {
+        display: ['Anton', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'monospace'],
       },
     },
   },
