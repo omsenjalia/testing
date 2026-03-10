@@ -20,6 +20,29 @@ const BUILDER_DATA = [
   { id: '13', username: 'pradeepyad089', name: 'Pradeep Yadav', avatar: '', location: 'Pune, India', lat: 18.5204, lng: 73.8567, tagline: 'Backend engineer shipping side projects.', productsCount: 1, profileUrl: 'https://buildinprocess.com/@pradeepyad089' },
   { id: '14', username: 'pastable', name: 'Kit Pastable', avatar: '', location: 'San Francisco, USA', lat: 37.7749, lng: -122.4194, tagline: 'Building Pastable.', productsCount: 1, profileUrl: 'https://buildinprocess.com/@pastable' },
   { id: '15', username: 'suresh', name: 'Suresh', avatar: '', location: 'Chennai, India', lat: 13.0827, lng: 80.2707, tagline: 'AI SEO tools.', productsCount: 2, profileUrl: 'https://buildinprocess.com/@suresh' },
+  { id: '16', username: 'ghost_builder', name: 'Ghost Builder', avatar: '', location: 'Unknown', lat: null, lng: null, tagline: 'Building in the shadows.', productsCount: 0, profileUrl: 'https://buildinprocess.com/@ghost_builder' },
+  { id: '17', username: 'nomad_dev', name: 'Nomad Dev', avatar: '', location: 'Everywhere', lat: null, lng: null, tagline: 'Digital nomad shipping from cafes.', productsCount: 4, profileUrl: 'https://buildinprocess.com/@nomad_dev' },
+  { id: '18', username: 'hidden_gem', name: 'Hidden Gem', avatar: '', location: 'Classified', lat: null, lng: null, tagline: 'Stealth mode startup founder.', productsCount: 1, profileUrl: 'https://buildinprocess.com/@hidden_gem' },
+]
+
+type Ad = {
+  id: string
+  headline: string
+  sub: string
+  cta: string
+  price: string
+  bg: string
+  polarUrl: string
+}
+
+const LEFT_ADS: Ad[] = [
+  { id: 'l1', headline: 'PRO PLAN', sub: 'UNLIMITED PRODUCTS & ANALYTICS', cta: 'UPGRADE NOW', price: '$29/MO', bg: '#FFE500', polarUrl: '#' },
+  { id: 'l2', headline: 'API ACCESS', sub: 'BUILD ON OUR INFRASTRUCTURE', cta: 'GET KEYS', price: '$99/MO', bg: '#00FF94', polarUrl: '#' },
+]
+
+const RIGHT_ADS: Ad[] = [
+  { id: 'r1', headline: 'NEWSLETTER', sub: 'WEEKLY INSIGHTS FOR FOUNDERS', cta: 'SUBSCRIBE', price: 'FREE', bg: '#FF6B35', polarUrl: '#' },
+  { id: 'r2', headline: 'SWAG SHOP', sub: 'BIP LIMITED EDITION TEES', cta: 'SHOP NOW', price: 'FROM $35', bg: '#C084FC', polarUrl: '#' },
 ]
 
 const BUILDER_COUNTRIES = new Set(['IND', 'GBR', 'FRA', 'DEU', 'NGA', 'ZAF', 'SVK', 'VNM', 'CAN', 'USA'])
@@ -33,8 +56,12 @@ export default function GlobeApp() {
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isNoLocationPanelOpen, setIsNoLocationPanelOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSearchFocused, setIsSearchFocused] = useState(false)
   const globeContainerRef = useRef<HTMLDivElement>(null)
   const globeInstance = useRef<any>(null)
+  const searchRef = useRef<HTMLDivElement>(null)
 
   const initGlobe = async () => {
     if (!globeContainerRef.current || !(window as any).Globe) return
@@ -69,7 +96,7 @@ export default function GlobeApp() {
           return BUILDER_COUNTRIES.has(code) ? '#D92D20' : 'rgba(255,255,255,0.1)'
         })
         // Avatar markers
-        .htmlElementsData(BUILDER_DATA)
+        .htmlElementsData(BUILDER_DATA.filter(u => u.lat && u.lng))
         .htmlLat('lat')
         .htmlLng('lng')
         .htmlAltitude(0.06)
@@ -144,12 +171,31 @@ export default function GlobeApp() {
       .atmosphereColor(isDarkMode ? '#3a76f0' : '#4a90e2')
   }, [isDarkMode])
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchFocused(false)
+      }
+    }
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsSearchFocused(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [])
+
 
   const handleMarkerClick = (user: any) => {
     if (!globeInstance.current) return
     setSelectedUser(null)
     globeInstance.current.pointOfView({ lat: user.lat, lng: user.lng, altitude: 1.4 }, 1200)
-    setTimeout(() => setSelectedUser(user), 1000)
+    setTimeout(() => setSelectedUser(user), 1200)
   }
 
   return (
@@ -162,19 +208,72 @@ export default function GlobeApp() {
         ::-webkit-scrollbar-thumb { background:#1A1A1A; }
         .toggle-btn { position:relative;width:44px;height:22px;background:${isDarkMode ? '#222' : '#e2e8f0'};border-radius:11px;cursor:pointer;border:1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};transition:all 0.3s; }
         .toggle-dot { position:absolute;top:2px;left:${isDarkMode ? '24px' : '2px'};width:16px;height:16px;background:${isDarkMode ? '#f8fafc' : '#64748b'};border-radius:50%;transition:all 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .ad-sidebar { position:fixed; top:50%; transform:translateY(-50%); width:160px; z-index:20; display:flex; flex-direction:column; gap:20px; }
+        @media (max-width: 1200px) { .ad-sidebar { display: none; } }
+        .ad-card { border: 2.5px solid #000; border-radius: 4px; padding: 12px; cursor: pointer; transition: all 0.2s; box-shadow: 4px 4px 0px #000; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 8px; }
+        .ad-card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px #000; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
       `}</style>
 
       <div style={{ display:'flex', flexDirection:'column', height:'100vh', width:'100%', background: isDarkMode ? '#050505' : '#f8fafc', transition:'background 0.5s', color: isDarkMode ? '#f8fafc' : '#0f172a' }}>
 
         {/* Header */}
         <header style={{ position:'fixed', top:0, left:0, right:0, height:'56px', borderBottom:`1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, background: isDarkMode ? 'rgba(0,0,0,0.6)' : 'rgba(248,250,252,0.8)', backdropFilter:'blur(8px)', zIndex:30, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px' }}>
-          <div style={{ display:'flex', flexDirection:'column', justifyContent:'center' }}>
-            <div style={{ color:'#D92D20', fontFamily:"'IBM Plex Mono',monospace", fontSize:'10px', fontWeight:700, letterSpacing:'0.2em', textTransform:'uppercase', marginBottom:'3px' }}>
-              BUILDINPROCESS
+          <div style={{ display:'flex', gap: '48px', alignItems: 'center' }}>
+            <div style={{ display:'flex', flexDirection:'column', justifyContent:'center' }}>
+              <div style={{ color:'#D92D20', fontFamily:"'IBM Plex Mono',monospace", fontSize:'10px', fontWeight:700, letterSpacing:'0.2em', textTransform:'uppercase', marginBottom:'3px' }}>
+                BUILDINPROCESS
+              </div>
+              <h1 style={{ fontFamily:"'Anton',Impact,sans-serif", fontSize:'22px', lineHeight:1, letterSpacing:'0.1em', textTransform:'uppercase', margin:0, color: isDarkMode ? '#f8fafc' : '#0f172a' }}>
+                BUILDER GLOBE
+              </h1>
             </div>
-            <h1 style={{ fontFamily:"'Anton',Impact,sans-serif", fontSize:'22px', lineHeight:1, letterSpacing:'0.1em', textTransform:'uppercase', margin:0, color: isDarkMode ? '#f8fafc' : '#0f172a' }}>
-              BUILDER GLOBE
-            </h1>
+
+            {/* Search Bar */}
+            <div ref={searchRef} style={{ position: 'relative', width: '280px' }}>
+              <input
+                type="text"
+                placeholder="SEARCH BUILDERS..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                style={{ width: '100%', background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', border: `1.5px solid ${isSearchFocused ? '#D92D20' : isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, borderRadius: '2px', padding: '6px 12px', fontFamily: "'IBM Plex Mono', monospace", fontSize: '11px', color: isDarkMode ? '#fff' : '#000', outline: 'none', transition: 'all 0.2s' }}
+              />
+              {isSearchFocused && searchQuery.length > 0 && (
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '8px', background: isDarkMode ? '#0A0A0A' : '#fff', border: `1.5px solid ${isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}`, borderRadius: '4px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)', maxHeight: '400px', overflowY: 'auto', zIndex: 100 }}>
+                  {BUILDER_DATA.filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()) || b.username.toLowerCase().includes(searchQuery.toLowerCase()) || b.location.toLowerCase().includes(searchQuery.toLowerCase())).map(user => (
+                    <div
+                      key={user.id}
+                      onClick={() => {
+                        setIsSearchFocused(false);
+                        setSearchQuery('');
+                        if (user.lat && user.lng) {
+                          handleMarkerClick(user);
+                        } else {
+                          setSelectedUser(user);
+                        }
+                      }}
+                      style={{ padding: '10px 12px', display: 'flex', gap: '12px', alignItems: 'center', cursor: 'pointer', borderBottom: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`, transition: 'background 0.2s' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = isDarkMode ? 'rgba(217,45,32,0.1)' : 'rgba(217,45,32,0.05)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <img
+                        src={user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`}
+                        style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #D92D20' }}
+                        alt={user.name}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '13px', textTransform: 'uppercase', color: isDarkMode ? '#fff' : '#000' }}>{user.name}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', color: '#D92D20', fontWeight: 700 }}>@{user.username}</span>
+                          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '9px', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)' }}>{user.location}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div style={{ display:'flex', alignItems:'center', gap:'24px' }}>
@@ -186,15 +285,61 @@ export default function GlobeApp() {
                 <div className="toggle-dot" />
               </div>
             </div>
-            <div style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'10px', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', gap:'6px' }}>
-              <div style={{ width:'6px', height:'6px', borderRadius:'50%', background:'#D92D20' }} />
-              {BUILDER_DATA.length} builders
+            <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+              <div
+                onClick={() => setIsNoLocationPanelOpen(true)}
+                style={{ cursor:'pointer', background:'#D92D20', color:'white', fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', fontWeight:700, padding:'4px 8px', borderRadius:'2px', letterSpacing:'0.05em', display:'flex', alignItems:'center', gap:'6px' }}
+                onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.05)')}
+                onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
+              >
+                ? {BUILDER_DATA.filter(b => !b.lat || !b.lng).length} BUILDERS — LOCATION UNKNOWN
+              </div>
+              <div style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'10px', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', gap:'6px' }}>
+                <div style={{ width:'6px', height:'6px', borderRadius:'50%', background:'#D92D20' }} />
+                {BUILDER_DATA.length} builders
+              </div>
             </div>
           </div>
         </header>
 
         {/* Globe */}
         <main style={{ marginTop:'56px', flex:1, position:'relative', overflow:'hidden' }}>
+          {/* Left Sidebar */}
+          <aside className="ad-sidebar" style={{ left: '24px' }}>
+            <div style={{ marginBottom: '8px' }}>
+              <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '8px', textTransform: 'uppercase', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', letterSpacing: '0.1em' }}>AD SLOT</div>
+              <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '8px', textTransform: 'uppercase', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', letterSpacing: '0.1em' }}>BUILDINPROCESS</div>
+            </div>
+            {LEFT_ADS.map(ad => (
+              <div key={ad.id} className="ad-card" style={{ background: ad.bg }} onClick={() => window.open(ad.polarUrl, '_blank')}>
+                <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '15px', color: '#000', textTransform: 'uppercase', lineHeight: 1.1 }}>{ad.headline}</div>
+                <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '8px', color: '#000', opacity: 0.65, textTransform: 'uppercase' }}>{ad.sub}</div>
+                <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ background: '#000', color: '#fff', fontSize: '9px', padding: '2px 6px', borderRadius: '2px', fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace" }}>{ad.price}</div>
+                  <div style={{ fontSize: '9px', fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace", color: '#000' }}>{ad.cta} →</div>
+                </div>
+              </div>
+            ))}
+          </aside>
+
+          {/* Right Sidebar */}
+          <aside className="ad-sidebar" style={{ right: '24px' }}>
+            <div style={{ marginBottom: '8px', textAlign: 'right' }}>
+              <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '8px', textTransform: 'uppercase', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', letterSpacing: '0.1em' }}>AD SLOT</div>
+              <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '8px', textTransform: 'uppercase', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', letterSpacing: '0.1em' }}>BUILDINPROCESS</div>
+            </div>
+            {RIGHT_ADS.map(ad => (
+              <div key={ad.id} className="ad-card" style={{ background: ad.bg }} onClick={() => window.open(ad.polarUrl, '_blank')}>
+                <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '15px', color: '#000', textTransform: 'uppercase', lineHeight: 1.1 }}>{ad.headline}</div>
+                <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '8px', color: '#000', opacity: 0.65, textTransform: 'uppercase' }}>{ad.sub}</div>
+                <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ background: '#000', color: '#fff', fontSize: '9px', padding: '2px 6px', borderRadius: '2px', fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace" }}>{ad.price}</div>
+                  <div style={{ fontSize: '9px', fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace", color: '#000' }}>{ad.cta} →</div>
+                </div>
+              </div>
+            ))}
+          </aside>
+
           {loading && (
             <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'IBM Plex Mono',monospace", fontSize:'12px', letterSpacing:'0.1em', opacity:0.5, zIndex:10, color: isDarkMode ? '#f8fafc' : '#0f172a' }}>
               LOADING BUILDERS...
@@ -231,10 +376,18 @@ export default function GlobeApp() {
 
                 <div style={{ height:'1px', background: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }} />
 
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
-                  <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', textTransform:'uppercase', letterSpacing:'0.1em', color: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.4)', fontWeight:700 }}>LOCATION</span>
-                  <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'12px', color: isDarkMode ? 'rgba(255,255,255,0.8)' : '#334155' }}>{selectedUser.location.toUpperCase()}</span>
-                </div>
+                {selectedUser.lat && selectedUser.lng ? (
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
+                    <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', textTransform:'uppercase', letterSpacing:'0.1em', color: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.4)', fontWeight:700 }}>LOCATION</span>
+                    <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'12px', color: isDarkMode ? 'rgba(255,255,255,0.8)' : '#334155' }}>{selectedUser.location.toUpperCase()}</span>
+                  </div>
+                ) : (
+                  <div style={{ border: '1.5px solid #D92D20', borderRadius: '2px', padding: '10px', background: 'rgba(217,45,32,0.05)' }}>
+                    <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '9px', color: '#D92D20', fontWeight: 700, letterSpacing: '0.05em', lineHeight: 1.4 }}>
+                      LOCATION NOT SET — IF THIS IS YOU, EDIT YOUR PROFILE AT BUILDINPROCESS.COM TO ADD YOUR LOCATION AND APPEAR ON THE GLOBE.
+                    </div>
+                  </div>
+                )}
 
                 <p style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'11px', lineHeight:1.6, borderLeft:'2px solid #D92D20', paddingLeft:'12px', margin:0, fontStyle:'italic', color: isDarkMode ? 'rgba(255,255,255,0.6)' : '#475569' }}>
                   &quot;{selectedUser.tagline}&quot;
@@ -258,10 +411,52 @@ export default function GlobeApp() {
           )}
         </main>
 
+        {/* No-Location Builders Panel */}
+        {isNoLocationPanelOpen && (
+          <>
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 60 }} onClick={() => setIsNoLocationPanelOpen(false)} />
+            <div style={{ position: 'fixed', right: 0, top: 0, bottom: 0, width: '400px', background: isDarkMode ? '#0A0A0A' : '#fff', borderLeft: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, zIndex: 70, padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', animation: 'slideIn 0.3s ease-out' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ color: '#D92D20', fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase' }}>BUILDINPROCESS</div>
+                  <h2 style={{ fontFamily: "'Anton', sans-serif", fontSize: '24px', textTransform: 'uppercase', margin: 0, color: isDarkMode ? '#fff' : '#000' }}>UNKNOWN LOCATIONS</h2>
+                </div>
+                <button onClick={() => setIsNoLocationPanelOpen(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)' }}>&times;</button>
+              </div>
+
+              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {BUILDER_DATA.filter(b => !b.lat || !b.lng).map(user => (
+                  <div
+                    key={user.id}
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setIsNoLocationPanelOpen(false);
+                    }}
+                    style={{ border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, borderRadius: '4px', padding: '16px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', gap: '16px', alignItems: 'center' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#D92D20')}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)')}
+                  >
+                    <img
+                      src={user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`}
+                      style={{ width: '48px', height: '48px', borderRadius: '4px', objectFit: 'cover' }}
+                      alt={user.name}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '16px', textTransform: 'uppercase', color: isDarkMode ? '#fff' : '#000' }}>{user.name}</div>
+                      <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '11px', color: '#D92D20', fontWeight: 700 }}>@{user.username}</div>
+                      <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', marginTop: '4px' }}>{user.tagline}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Footer */}
         <footer style={{ height:'32px', borderTop:`1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', textTransform:'uppercase', letterSpacing:'0.15em', color: isDarkMode ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.35)', background: isDarkMode ? '#000' : 'white' }}>
           <span>buildinprocess.com</span>
-          <span>{selectedUser ? `{ LAT: ${selectedUser.lat.toFixed(4)}, LNG: ${selectedUser.lng.toFixed(4)} }` : ''}</span>
+          <span>{selectedUser && selectedUser.lat && selectedUser.lng ? `{ LAT: ${selectedUser.lat.toFixed(4)}, LNG: ${selectedUser.lng.toFixed(4)} }` : ''}</span>
           <span>{BUILDER_DATA.length} builders</span>
         </footer>
       </div>
