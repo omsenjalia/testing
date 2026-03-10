@@ -27,7 +27,8 @@ const BUILDER_COUNTRIES = new Set(['IND', 'GBR', 'FRA', 'DEU', 'NGA', 'ZAF', 'SV
 const DAY_TEXTURE = 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg'
 const NIGHT_TEXTURE = 'https://unpkg.com/three-globe/example/img/earth-night.jpg'
 const BUMP_TEXTURE = 'https://unpkg.com/three-globe/example/img/earth-topology.png'
-const COUNTRIES_GEOJSON = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson'
+const COUNTRIES_GEOJSON = 'https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson'
+const INDIA_GEOJSON_URL = 'https://raw.githubusercontent.com/geohacker/india/master/state/india_telengana.geojson'
 
 export default function GlobeApp() {
   const [selectedUser, setSelectedUser] = useState<any>(null)
@@ -35,23 +36,56 @@ export default function GlobeApp() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const globeContainerRef = useRef<HTMLDivElement>(null)
   const globeInstance = useRef<any>(null)
+  const pulseFrameRef = useRef<number>(0)
 
   const initGlobe = async () => {
     if (!globeContainerRef.current || !(window as any).Globe) return
     try {
-      const res = await fetch(COUNTRIES_GEOJSON)
-      const countries = await res.json()
+      const [countriesRes, indiaRes] = await Promise.all([
+        fetch(COUNTRIES_GEOJSON),
+        fetch(INDIA_GEOJSON_URL).catch(err => {
+          console.warn('Failed to fetch India GeoJSON:', err)
+          return null
+        })
+      ])
+      const countries = await countriesRes.json()
+      const indiaCorrect = indiaRes ? await indiaRes.json() : null
+
+      const patchedFeatures = countries.features
+        .flatMap((f: any) => {
+          const code = f.properties.ISO_A3 || f.properties.ADM0_A3
+          if (code === 'IND' && indiaCorrect) {
+            if (indiaCorrect.features) {
+              return indiaCorrect.features.map((sf: any) => ({
+                ...sf,
+                properties: { ...f.properties, ...sf.properties }
+              }))
+            }
+            return [{
+              ...f,
+              geometry: indiaCorrect.geometry ?? f.geometry
+            }]
+          }
+          return [f]
+        })
+        .filter((f: any) => {
+          const name = (f.properties.NAME || f.properties.name || '').toLowerCase()
+          const sov = (f.properties.SOVEREIGNT || '').toLowerCase()
+          if (name.includes('kashmir') && sov.includes('pakistan')) return false
+          if (name.includes('azad')) return false
+          return true
+        })
 
       const globe = (window as any).Globe()(globeContainerRef.current)
         // SATELLITE TEXTURE — DO NOT CHANGE TO NULL
         .globeImageUrl(DAY_TEXTURE)
-        .bumpImageUrl(BUMP_TEXTURE)
+        .bumpImageUrl(isDarkMode ? null : BUMP_TEXTURE)
         .backgroundColor('#f8fafc')
         .showAtmosphere(true)
         .atmosphereColor('#4a90e2')
         .atmosphereAltitude(0.15)
         // Country overlays on top of texture
-        .polygonsData(countries.features)
+        .polygonsData(patchedFeatures)
         .polygonAltitude((d: any) => {
           const code = d.properties.ISO_A3 || d.properties.ADM0_A3
           return BUILDER_COUNTRIES.has(code) ? 0.04 : 0.005
@@ -76,11 +110,19 @@ export default function GlobeApp() {
         .htmlElement((user: any) => {
           const el = document.createElement('div')
           el.style.cssText = 'position:relative;display:flex;flex-direction:column;align-items:center;cursor:pointer;pointer-events:auto;'
-          const initials = user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2)
-          const avatarHtml = user.avatar
-            ? `<img src="${user.avatar}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-               <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:10px;font-weight:bold;color:rgba(26,26,26,0.7);font-family:'IBM Plex Mono',monospace">${initials}</div>`
-            : `<div style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;font-size:10px;font-weight:bold;color:rgba(26,26,26,0.7);font-family:'IBM Plex Mono',monospace">${initials}</div>`
+
+          const avatarSrc = user.avatar
+            ? user.avatar
+            : `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`
+
+          const avatarHtml = `
+            <img
+              src="${avatarSrc}"
+              alt="${user.name}"
+              style="width:100%;height:100%;object-fit:cover;"
+              onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40'"
+            />
+          `
           el.innerHTML = `
             <div style="width:32px;height:32px;border-radius:50%;border:2px solid #D92D20;background:#1A1A1A;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(217,45,32,0.6);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'">
               ${avatarHtml}
@@ -97,16 +139,19 @@ export default function GlobeApp() {
 
       // Pulse animation for builder countries
       let t = 0
-      const pulse = () => {
+      let lastPulseTime = 0
+      const pulse = (timestamp: number) => {
+        pulseFrameRef.current = requestAnimationFrame(pulse)
+        if (timestamp - lastPulseTime < 50) return // ~20fps cap
+        lastPulseTime = timestamp
         t += 0.05
         const alt = 0.04 + Math.sin(t) * 0.01
         globe.polygonAltitude((d: any) => {
           const code = d.properties.ISO_A3 || d.properties.ADM0_A3
           return BUILDER_COUNTRIES.has(code) ? alt : 0.005
         })
-        requestAnimationFrame(pulse)
       }
-      pulse()
+      pulseFrameRef.current = requestAnimationFrame(pulse)
 
       globeInstance.current = globe
       globe.pointOfView({ altitude: 2.2 }, 0)
@@ -143,9 +188,19 @@ export default function GlobeApp() {
     if (!globeInstance.current) return
     globeInstance.current
       .globeImageUrl(isDarkMode ? NIGHT_TEXTURE : DAY_TEXTURE)
+      .bumpImageUrl(isDarkMode ? null : BUMP_TEXTURE)
       .backgroundColor(isDarkMode ? '#050505' : '#f8fafc')
       .atmosphereColor(isDarkMode ? '#3a76f0' : '#4a90e2')
   }, [isDarkMode])
+
+  // Cleanup animation on unmount
+  useEffect(() => {
+    return () => {
+      if (pulseFrameRef.current) {
+        cancelAnimationFrame(pulseFrameRef.current)
+      }
+    }
+  }, [])
 
   const handleMarkerClick = (user: any) => {
     if (!globeInstance.current) return
@@ -153,9 +208,6 @@ export default function GlobeApp() {
     globeInstance.current.pointOfView({ lat: user.lat, lng: user.lng, altitude: 1.4 }, 1200)
     setTimeout(() => setSelectedUser(user), 1000)
   }
-
-  const getInitials = (name: string) =>
-    name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
 
   return (
     <>
@@ -219,10 +271,14 @@ export default function GlobeApp() {
 
                 <div style={{ display:'flex', gap:'14px', alignItems:'center' }}>
                   <div style={{ width:'52px', height:'52px', borderRadius:'4px', overflow:'hidden', background: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f1f5f9', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', border:`1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}` }}>
-                    {selectedUser.avatar
-                      ? <img src={selectedUser.avatar} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt={selectedUser.name} />
-                      : <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'14px', fontWeight:700, color: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)' }}>{getInitials(selectedUser.name)}</span>
-                    }
+                    <img
+                      src={selectedUser.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(selectedUser.name)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`}
+                      style={{ width:'100%', height:'100%', objectFit:'cover' }}
+                      alt={selectedUser.name}
+                      onError={(e: any) => {
+                        e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(selectedUser.name)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`
+                      }}
+                    />
                   </div>
                   <div>
                     <div style={{ fontFamily:"'Anton',sans-serif", fontSize:'20px', textTransform:'uppercase', letterSpacing:'0.08em', color: isDarkMode ? '#f8fafc' : '#0f172a' }}>{selectedUser.name}</div>
