@@ -1,21 +1,14 @@
-"use client"
+import dynamic from 'next/dynamic'
 
-import dynamic from "next/dynamic"
-
-// Dynamic import for GlobeApp component (browser-only)
-const GlobeApp = dynamic(() => import("@/components/GlobeApp"), {
+const GlobeApp = dynamic(() => import('@/components/GlobeApp'), {
   ssr: false,
   loading: () => (
-    <div className="fixed inset-0 bg-[#F3EFE7] flex items-center justify-center font-mono text-[12px] text-[#888888]">
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontFamily:'IBM Plex Mono, monospace', fontSize:'12px', letterSpacing:'0.1em', color:'#888', background:'#f8fafc' }}>
       LOADING BUILDERS...
     </div>
-  ),
+  )
 })
 
-export default function Home() {
-  return (
-    <main>
-      <GlobeApp />
-    </main>
-  )
+export default function Page() {
+  return <GlobeApp />
 }
