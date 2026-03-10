@@ -1,3 +1,5 @@
+'use client'
+
 import dynamic from 'next/dynamic'
 
 const GlobeApp = dynamic(() => import('@/components/GlobeApp'), {
