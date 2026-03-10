@@ -28,7 +28,6 @@ const DAY_TEXTURE = 'https://unpkg.com/three-globe/example/img/earth-blue-marble
 const NIGHT_TEXTURE = 'https://unpkg.com/three-globe/example/img/earth-night.jpg'
 const BUMP_TEXTURE = 'https://unpkg.com/three-globe/example/img/earth-topology.png'
 const COUNTRIES_GEOJSON = 'https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson'
-const INDIA_GEOJSON_URL = 'https://raw.githubusercontent.com/datameet/maps/master/Country/india-composite.geojson'
 
 export default function GlobeApp() {
   const [selectedUser, setSelectedUser] = useState<any>(null)
@@ -40,35 +39,8 @@ export default function GlobeApp() {
   const initGlobe = async () => {
     if (!globeContainerRef.current || !(window as any).Globe) return
     try {
-      const [countriesRes, indiaRes] = await Promise.all([
-        fetch(COUNTRIES_GEOJSON),
-        fetch(INDIA_GEOJSON_URL).catch(err => {
-          console.warn('Failed to fetch India GeoJSON:', err)
-          return null
-        })
-      ])
+      const countriesRes = await fetch(COUNTRIES_GEOJSON)
       const countries = await countriesRes.json()
-      const indiaCorrect = indiaRes ? await indiaRes.json() : null
-
-      const patchedFeatures = countries.features
-        .flatMap((f: any) => {
-          const code = f.properties.ISO_A3 || f.properties.ADM0_A3
-          if (code === 'IND' && indiaCorrect) {
-            const indiaFeatures = indiaCorrect.features || [indiaCorrect]
-            return indiaFeatures.map((sf: any) => ({
-              ...sf,
-              properties: { ...f.properties, ...sf.properties, ISO_A3: 'IND' }
-            }))
-          }
-          return [f]
-        })
-        .filter((f: any) => {
-          const name = (f.properties.NAME || f.properties.name || f.properties.Name || '').toLowerCase()
-          const sov = (f.properties.SOVEREIGNT || f.properties.sovereignt || '').toLowerCase()
-          if (name.includes('kashmir') && sov.includes('pakistan')) return false
-          if (name.includes('azad')) return false
-          return true
-        })
 
       const globe = (window as any).Globe()(globeContainerRef.current)
         // SATELLITE TEXTURE — DO NOT CHANGE TO NULL
@@ -79,7 +51,7 @@ export default function GlobeApp() {
         .atmosphereColor('#4a90e2')
         .atmosphereAltitude(0.15)
         // Country overlays on top of texture
-        .polygonsData(patchedFeatures)
+        .polygonsData(countries.features)
         .polygonAltitude((d: any) => {
           const code = d.properties.ISO_A3 || d.properties.ADM0_A3
           return BUILDER_COUNTRIES.has(code) ? 0.04 : 0.005
@@ -215,7 +187,7 @@ export default function GlobeApp() {
               </div>
             </div>
             <div style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'10px', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', gap:'6px' }}>
-              <div style={{ width:'6px', height:'6px', borderRadius:'50%', background:'#D92D20', animation:'pulse 2s infinite' }} />
+              <div style={{ width:'6px', height:'6px', borderRadius:'50%', background:'#D92D20' }} />
               {BUILDER_DATA.length} builders
             </div>
           </div>
