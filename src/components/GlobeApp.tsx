@@ -28,7 +28,7 @@ const DAY_TEXTURE = 'https://unpkg.com/three-globe/example/img/earth-blue-marble
 const NIGHT_TEXTURE = 'https://unpkg.com/three-globe/example/img/earth-night.jpg'
 const BUMP_TEXTURE = 'https://unpkg.com/three-globe/example/img/earth-topology.png'
 const COUNTRIES_GEOJSON = 'https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson'
-const INDIA_GEOJSON_URL = 'https://raw.githubusercontent.com/geohacker/india/master/state/india_telengana.geojson'
+const INDIA_GEOJSON_URL = 'https://raw.githubusercontent.com/datameet/maps/master/Country/india-composite.geojson'
 
 export default function GlobeApp() {
   const [selectedUser, setSelectedUser] = useState<any>(null)
@@ -36,7 +36,6 @@ export default function GlobeApp() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const globeContainerRef = useRef<HTMLDivElement>(null)
   const globeInstance = useRef<any>(null)
-  const pulseFrameRef = useRef<number>(0)
 
   const initGlobe = async () => {
     if (!globeContainerRef.current || !(window as any).Globe) return
@@ -55,22 +54,17 @@ export default function GlobeApp() {
         .flatMap((f: any) => {
           const code = f.properties.ISO_A3 || f.properties.ADM0_A3
           if (code === 'IND' && indiaCorrect) {
-            if (indiaCorrect.features) {
-              return indiaCorrect.features.map((sf: any) => ({
-                ...sf,
-                properties: { ...f.properties, ...sf.properties }
-              }))
-            }
-            return [{
-              ...f,
-              geometry: indiaCorrect.geometry ?? f.geometry
-            }]
+            const indiaFeatures = indiaCorrect.features || [indiaCorrect]
+            return indiaFeatures.map((sf: any) => ({
+              ...sf,
+              properties: { ...f.properties, ...sf.properties, ISO_A3: 'IND' }
+            }))
           }
           return [f]
         })
         .filter((f: any) => {
-          const name = (f.properties.NAME || f.properties.name || '').toLowerCase()
-          const sov = (f.properties.SOVEREIGNT || '').toLowerCase()
+          const name = (f.properties.NAME || f.properties.name || f.properties.Name || '').toLowerCase()
+          const sov = (f.properties.SOVEREIGNT || f.properties.sovereignt || '').toLowerCase()
           if (name.includes('kashmir') && sov.includes('pakistan')) return false
           if (name.includes('azad')) return false
           return true
@@ -137,21 +131,6 @@ export default function GlobeApp() {
           return el
         })
 
-      // Pulse animation for builder countries
-      let t = 0
-      let lastPulseTime = 0
-      const pulse = (timestamp: number) => {
-        pulseFrameRef.current = requestAnimationFrame(pulse)
-        if (timestamp - lastPulseTime < 50) return // ~20fps cap
-        lastPulseTime = timestamp
-        t += 0.05
-        const alt = 0.04 + Math.sin(t) * 0.01
-        globe.polygonAltitude((d: any) => {
-          const code = d.properties.ISO_A3 || d.properties.ADM0_A3
-          return BUILDER_COUNTRIES.has(code) ? alt : 0.005
-        })
-      }
-      pulseFrameRef.current = requestAnimationFrame(pulse)
 
       globeInstance.current = globe
       globe.pointOfView({ altitude: 2.2 }, 0)
@@ -193,14 +172,6 @@ export default function GlobeApp() {
       .atmosphereColor(isDarkMode ? '#3a76f0' : '#4a90e2')
   }, [isDarkMode])
 
-  // Cleanup animation on unmount
-  useEffect(() => {
-    return () => {
-      if (pulseFrameRef.current) {
-        cancelAnimationFrame(pulseFrameRef.current)
-      }
-    }
-  }, [])
 
   const handleMarkerClick = (user: any) => {
     if (!globeInstance.current) return
