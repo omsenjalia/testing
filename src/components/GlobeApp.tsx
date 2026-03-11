@@ -1,6 +1,9 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
+import SearchBar from './SearchBar'
+import ProfileWidget from './ProfileWidget'
+import AdSlot from './AdSlot'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -25,25 +28,6 @@ const BUILDER_DATA = [
   { id: '18', username: 'hidden_gem', name: 'Hidden Gem', avatar: '', location: 'Classified', lat: null, lng: null, tagline: 'Stealth mode startup founder.', productsCount: 1, profileUrl: 'https://buildinprocess.com/@hidden_gem' },
 ]
 
-type Ad = {
-  id: string
-  headline: string
-  sub: string
-  cta: string
-  price: string
-  bg: string
-  polarUrl: string
-}
-
-const LEFT_ADS: Ad[] = [
-  { id: 'l1', headline: 'PRO PLAN', sub: 'UNLIMITED PRODUCTS & ANALYTICS', cta: 'UPGRADE NOW', price: '$29/MO', bg: '#FFE500', polarUrl: '#' },
-  { id: 'l2', headline: 'API ACCESS', sub: 'BUILD ON OUR INFRASTRUCTURE', cta: 'GET KEYS', price: '$99/MO', bg: '#00FF94', polarUrl: '#' },
-]
-
-const RIGHT_ADS: Ad[] = [
-  { id: 'r1', headline: 'NEWSLETTER', sub: 'WEEKLY INSIGHTS FOR FOUNDERS', cta: 'SUBSCRIBE', price: 'FREE', bg: '#FF6B35', polarUrl: '#' },
-  { id: 'r2', headline: 'SWAG SHOP', sub: 'FORG LIMITED EDITION TEES', cta: 'SHOP NOW', price: 'FROM $35', bg: '#C084FC', polarUrl: '#' },
-]
 
 const BUILDER_COUNTRIES = new Set(['IND', 'GBR', 'FRA', 'DEU', 'NGA', 'ZAF', 'SVK', 'VNM', 'CAN', 'USA'])
 
@@ -55,13 +39,10 @@ const COUNTRIES_GEOJSON = 'https://raw.githubusercontent.com/vasturiano/react-gl
 export default function GlobeApp() {
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(true)
   const [isNoLocationPanelOpen, setIsNoLocationPanelOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [isSearchFocused, setIsSearchFocused] = useState(false)
   const globeContainerRef = useRef<HTMLDivElement>(null)
   const globeInstance = useRef<any>(null)
-  const searchRef = useRef<HTMLDivElement>(null)
 
   const initGlobe = async () => {
     if (!globeContainerRef.current || !(window as any).Globe) return
@@ -71,11 +52,11 @@ export default function GlobeApp() {
 
       const globe = (window as any).Globe()(globeContainerRef.current)
         // SATELLITE TEXTURE — DO NOT CHANGE TO NULL
-        .globeImageUrl(DAY_TEXTURE)
+        .globeImageUrl(isDarkMode ? NIGHT_TEXTURE : DAY_TEXTURE)
         .bumpImageUrl(isDarkMode ? null : BUMP_TEXTURE)
-        .backgroundColor('#f8fafc')
+        .backgroundColor('#050505')
         .showAtmosphere(true)
-        .atmosphereColor('#4a90e2')
+        .atmosphereColor(isDarkMode ? '#3a76f0' : '#4a90e2')
         .atmosphereAltitude(0.15)
         // Country overlays on top of texture
         .polygonsData(countries.features)
@@ -171,30 +152,56 @@ export default function GlobeApp() {
       .atmosphereColor(isDarkMode ? '#3a76f0' : '#4a90e2')
   }, [isDarkMode])
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsSearchFocused(false)
-      }
-    }
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsSearchFocused(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    document.addEventListener('keydown', handleEscape)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('keydown', handleEscape)
-    }
-  }, [])
 
+
+  const GEOMAP: Record<string, { lat: number, lng: number }> = {
+    'india': { lat: 20.5937, lng: 78.9629 },
+    'bengaluru': { lat: 12.9716, lng: 77.5946 },
+    'mumbai': { lat: 19.076, lng: 72.8777 },
+    'delhi': { lat: 28.6139, lng: 77.209 },
+    'pune': { lat: 18.5204, lng: 73.8567 },
+    'chennai': { lat: 13.0827, lng: 80.2707 },
+    'london': { lat: 51.5074, lng: -0.1278 },
+    'uk': { lat: 55.3781, lng: -3.436 },
+    'paris': { lat: 48.8566, lng: 2.3522 },
+    'france': { lat: 46.2276, lng: 2.2137 },
+    'berlin': { lat: 52.52, lng: 13.405 },
+    'germany': { lat: 51.1657, lng: 10.4515 },
+    'ho chi minh city': { lat: 10.8231, lng: 106.6297 },
+    'vietnam': { lat: 14.0583, lng: 108.2772 },
+    'bratislava': { lat: 48.1486, lng: 17.1077 },
+    'slovakia': { lat: 48.669, lng: 19.699 },
+    'lagos': { lat: 6.5244, lng: 3.3792 },
+    'abuja': { lat: 9.0579, lng: 7.4951 },
+    'nigeria': { lat: 9.082, lng: 8.6753 },
+    'cape town': { lat: -33.9249, lng: 18.4241 },
+    'south africa': { lat: -30.5595, lng: 22.9375 },
+    'toronto': { lat: 43.6532, lng: -79.3832 },
+    'canada': { lat: 56.1304, lng: -106.3468 },
+    'san francisco': { lat: 37.7749, lng: -122.4194 },
+    'usa': { lat: 37.0902, lng: -95.7129 },
+  }
+
+  const getLatLngFromLocation = (location: string) => {
+    if (!location) return null
+    const loc = location.toLowerCase().trim()
+    for (const key in GEOMAP) {
+      if (loc.includes(key)) return GEOMAP[key]
+    }
+    return null
+  }
 
   const handleMarkerClick = (user: any) => {
     if (!globeInstance.current) return
     setSelectedUser(null)
-    globeInstance.current.pointOfView({ lat: user.lat, lng: user.lng, altitude: 1.4 }, 1200)
+
+    const coords = (user.lat && user.lng)
+      ? { lat: user.lat, lng: user.lng }
+      : getLatLngFromLocation(user.location)
+
+    if (coords) {
+      globeInstance.current.pointOfView({ lat: coords.lat, lng: coords.lng, altitude: 1.4 }, 1200)
+    }
     setTimeout(() => setSelectedUser(user), 1200)
   }
 
@@ -202,89 +209,44 @@ export default function GlobeApp() {
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
-        body { margin:0; overflow:hidden; font-family:'IBM Plex Mono',monospace; background:${isDarkMode ? '#050505' : '#f8fafc'}; transition: background 0.5s; }
+        body { margin:0; overflow:hidden; font-family:'IBM Plex Mono',monospace; background: #050505; transition: background 0.5s; color: #f8fafc; }
         * { box-sizing:border-box; }
         ::-webkit-scrollbar { width:4px; }
         ::-webkit-scrollbar-thumb { background:#1A1A1A; }
         .toggle-btn { position:relative;width:44px;height:22px;background:${isDarkMode ? '#222' : '#e2e8f0'};border-radius:11px;cursor:pointer;border:1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};transition:all 0.3s; }
         .toggle-dot { position:absolute;top:2px;left:${isDarkMode ? '24px' : '2px'};width:16px;height:16px;background:${isDarkMode ? '#f8fafc' : '#64748b'};border-radius:50%;transition:all 0.3s cubic-bezier(0.4,0,0.2,1); }
-        .ad-sidebar { position:fixed; top:50%; transform:translateY(-50%); width:160px; z-index:20; display:flex; flex-direction:column; gap:20px; }
-        @media (max-width: 1200px) { .ad-sidebar { display: none; } }
-        .ad-card { border: 2.5px solid #000; border-radius: 4px; padding: 12px; cursor: pointer; transition: all 0.2s; box-shadow: 4px 4px 0px #000; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 8px; }
-        .ad-card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px #000; }
+        .ad-sidebar { position:fixed; top:56px; bottom:32px; width:180px; z-index:20; display:flex; flex-direction:column; gap:20px; background: rgba(5,5,5,0.6); backdrop-filter: blur(4px); padding-top: 40px; }
+        @media (max-width: 768px) { .ad-sidebar { display: none; } }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
       `}</style>
 
-      <div style={{ display:'flex', flexDirection:'column', height:'100vh', width:'100%', background: isDarkMode ? '#050505' : '#f8fafc', transition:'background 0.5s', color: isDarkMode ? '#f8fafc' : '#0f172a' }}>
+      <div style={{ display:'flex', flexDirection:'column', height:'100vh', width:'100%', background: '#050505', color: '#f8fafc' }}>
 
         {/* Header */}
-        <header style={{ position:'fixed', top:0, left:0, right:0, height:'56px', borderBottom:`1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, background: isDarkMode ? 'rgba(0,0,0,0.6)' : 'rgba(248,250,252,0.8)', backdropFilter:'blur(8px)', zIndex:30, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px' }}>
-          <div style={{ display:'flex', gap: '48px', alignItems: 'center' }}>
-            <div style={{ display:'flex', flexDirection:'column', justifyContent:'center' }}>
-              <div style={{ color:'#D92D20', fontFamily:"'IBM Plex Mono',monospace", fontSize:'10px', fontWeight:700, letterSpacing:'0.2em', textTransform:'uppercase', marginBottom:'3px' }}>
-                FORG
-              </div>
-              <h1 style={{ fontFamily:"'Anton',Impact,sans-serif", fontSize:'22px', lineHeight:1, letterSpacing:'0.1em', textTransform:'uppercase', margin:0, color: isDarkMode ? '#f8fafc' : '#0f172a' }}>
-                GLOBE
-              </h1>
-            </div>
-
-            {/* Search Bar */}
-            <div ref={searchRef} style={{ position: 'relative', width: '280px' }}>
-              <input
-                type="text"
-                placeholder="SEARCH BUILDERS..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                style={{ width: '100%', background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', border: `1.5px solid ${isSearchFocused ? '#D92D20' : isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, borderRadius: '2px', padding: '6px 12px', fontFamily: "'IBM Plex Mono', monospace", fontSize: '11px', color: isDarkMode ? '#fff' : '#000', outline: 'none', transition: 'all 0.2s' }}
-              />
-              {isSearchFocused && searchQuery.length > 0 && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '8px', background: isDarkMode ? '#0A0A0A' : '#fff', border: `1.5px solid ${isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}`, borderRadius: '4px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)', maxHeight: '400px', overflowY: 'auto', zIndex: 100 }}>
-                  {BUILDER_DATA.filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()) || b.username.toLowerCase().includes(searchQuery.toLowerCase()) || b.location.toLowerCase().includes(searchQuery.toLowerCase())).map(user => (
-                    <div
-                      key={user.id}
-                      onClick={() => {
-                        setIsSearchFocused(false);
-                        setSearchQuery('');
-                        if (user.lat && user.lng) {
-                          handleMarkerClick(user);
-                        } else {
-                          setSelectedUser(user);
-                        }
-                      }}
-                      style={{ padding: '10px 12px', display: 'flex', gap: '12px', alignItems: 'center', cursor: 'pointer', borderBottom: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`, transition: 'background 0.2s' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = isDarkMode ? 'rgba(217,45,32,0.1)' : 'rgba(217,45,32,0.05)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                    >
-                      <img
-                        src={user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`}
-                        style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #D92D20' }}
-                        alt={user.name}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '13px', textTransform: 'uppercase', color: isDarkMode ? '#fff' : '#000' }}>{user.name}</div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', color: '#D92D20', fontWeight: 700 }}>@{user.username}</span>
-                          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '9px', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)' }}>{user.location}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+        <header style={{ position:'fixed', top:0, left:0, right:0, height:'56px', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(5,5,5,0.8)', backdropFilter:'blur(8px)', zIndex:30, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px' }}>
+          <div style={{ display:'flex', alignItems: 'center' }}>
+            <a href="https://forg.to" target="_blank" rel="noopener noreferrer" style={{ display:'flex', alignItems:'center', gap:'12px', textDecoration:'none' }}>
+              <img src="https://api.forg.to/logo.png" alt="forg.to" style={{ height:'24px', width:'auto' }} />
+              <div style={{ display:'flex', flexDirection:'column', justifyContent:'center' }}>
+                <div style={{ color:'#D92D20', fontFamily:"'IBM Plex Mono',monospace", fontSize:'10px', fontWeight:700, letterSpacing:'0.2em', textTransform:'uppercase', marginBottom:'3px' }}>
+                  FORG
                 </div>
-              )}
-            </div>
+                <h1 style={{ fontFamily:"'Anton',Impact,sans-serif", fontSize:'22px', lineHeight:1, letterSpacing:'0.1em', textTransform:'uppercase', margin:0, color: '#f8fafc' }}>
+                  GLOBE
+                </h1>
+              </div>
+            </a>
+          </div>
+
+          <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '12px' }}>
+            <SearchBar
+              builders={BUILDER_DATA}
+              onSelectUser={(user) => handleMarkerClick(user)}
+              isDarkMode={isDarkMode}
+            />
           </div>
 
           <div style={{ display:'flex', alignItems:'center', gap:'24px' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-              <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', textTransform:'uppercase', letterSpacing:'0.15em', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)' }}>
-                {isDarkMode ? 'DARK' : 'LIGHT'}
-              </span>
-              <div className="toggle-btn" onClick={() => setIsDarkMode(!isDarkMode)}>
-                <div className="toggle-dot" />
-              </div>
-            </div>
             <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
               <div
                 onClick={() => setIsNoLocationPanelOpen(true)}
@@ -305,110 +267,28 @@ export default function GlobeApp() {
         {/* Globe */}
         <main style={{ marginTop:'56px', flex:1, position:'relative', overflow:'hidden' }}>
           {/* Left Sidebar */}
-          <aside className="ad-sidebar" style={{ left: '24px' }}>
-            <div style={{ marginBottom: '8px' }}>
-              <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '8px', textTransform: 'uppercase', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', letterSpacing: '0.1em' }}>AD SLOT</div>
-              <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '8px', textTransform: 'uppercase', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', letterSpacing: '0.1em' }}>FORG</div>
-            </div>
-            {LEFT_ADS.map(ad => (
-              <div key={ad.id} className="ad-card" style={{ background: ad.bg }} onClick={() => window.open(ad.polarUrl, '_blank')}>
-                <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '15px', color: '#000', textTransform: 'uppercase', lineHeight: 1.1 }}>{ad.headline}</div>
-                <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '8px', color: '#000', opacity: 0.65, textTransform: 'uppercase' }}>{ad.sub}</div>
-                <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ background: '#000', color: '#fff', fontSize: '9px', padding: '2px 6px', borderRadius: '2px', fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace" }}>{ad.price}</div>
-                  <div style={{ fontSize: '9px', fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace", color: '#000' }}>{ad.cta} →</div>
-                </div>
-              </div>
-            ))}
+          <aside className="ad-sidebar" style={{ left: 0, borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+            <AdSlot isDarkMode={isDarkMode} />
           </aside>
 
           {/* Right Sidebar */}
-          <aside className="ad-sidebar" style={{ right: '24px' }}>
-            <div style={{ marginBottom: '8px', textAlign: 'right' }}>
-              <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '8px', textTransform: 'uppercase', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', letterSpacing: '0.1em' }}>AD SLOT</div>
-              <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '8px', textTransform: 'uppercase', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', letterSpacing: '0.1em' }}>FORG</div>
-            </div>
-            {RIGHT_ADS.map(ad => (
-              <div key={ad.id} className="ad-card" style={{ background: ad.bg }} onClick={() => window.open(ad.polarUrl, '_blank')}>
-                <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '15px', color: '#000', textTransform: 'uppercase', lineHeight: 1.1 }}>{ad.headline}</div>
-                <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '8px', color: '#000', opacity: 0.65, textTransform: 'uppercase' }}>{ad.sub}</div>
-                <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ background: '#000', color: '#fff', fontSize: '9px', padding: '2px 6px', borderRadius: '2px', fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace" }}>{ad.price}</div>
-                  <div style={{ fontSize: '9px', fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace", color: '#000' }}>{ad.cta} →</div>
-                </div>
-              </div>
-            ))}
+          <aside className="ad-sidebar" style={{ right: 0, borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
+            <AdSlot isDarkMode={isDarkMode} />
           </aside>
 
           {loading && (
-            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'IBM Plex Mono',monospace", fontSize:'12px', letterSpacing:'0.1em', opacity:0.5, zIndex:10, color: isDarkMode ? '#f8fafc' : '#0f172a' }}>
+            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'IBM Plex Mono',monospace", fontSize:'12px', letterSpacing:'0.1em', zIndex:10, color: '#f8fafc', background: '#050505' }}>
               LOADING BUILDERS...
             </div>
           )}
           <div ref={globeContainerRef} style={{ width:'100%', height:'100%' }} />
 
           {/* Profile Widget */}
-          {selectedUser && (
-            <>
-              <div style={{ position:'fixed', inset:0, zIndex:40 }} onClick={() => setSelectedUser(null)} />
-              <div style={{ position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', zIndex:50, width:'340px', background: isDarkMode ? '#0A0A0A' : 'white', border:`1px solid ${isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)'}`, borderRadius:'4px', padding:'20px', display:'flex', flexDirection:'column', gap:'14px' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                  <span style={{ color:'#D92D20', fontFamily:"'IBM Plex Mono',monospace", fontSize:'10px', fontWeight:700, letterSpacing:'0.2em', textTransform:'uppercase' }}>FORG</span>
-                  <button onClick={() => setSelectedUser(null)} style={{ background:'none', border:'none', fontSize:'20px', cursor:'pointer', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', lineHeight:1 }}>&times;</button>
-                </div>
-
-                <div style={{ display:'flex', gap:'14px', alignItems:'center' }}>
-                  <div style={{ width:'52px', height:'52px', borderRadius:'4px', overflow:'hidden', background: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f1f5f9', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', border:`1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}` }}>
-                    <img
-                      src={selectedUser.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(selectedUser.name)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`}
-                      style={{ width:'100%', height:'100%', objectFit:'cover' }}
-                      alt={selectedUser.name}
-                      onError={(e: any) => {
-                        e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(selectedUser.name)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <div style={{ fontFamily:"'Anton',sans-serif", fontSize:'20px', textTransform:'uppercase', letterSpacing:'0.08em', color: isDarkMode ? '#f8fafc' : '#0f172a' }}>{selectedUser.name}</div>
-                    <div style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'11px', color:'#D92D20', marginTop:'3px', fontWeight:700 }}>@{selectedUser.username}</div>
-                  </div>
-                </div>
-
-                <div style={{ height:'1px', background: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }} />
-
-                {selectedUser.lat && selectedUser.lng ? (
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
-                    <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', textTransform:'uppercase', letterSpacing:'0.1em', color: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.4)', fontWeight:700 }}>LOCATION</span>
-                    <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'12px', color: isDarkMode ? 'rgba(255,255,255,0.8)' : '#334155' }}>{selectedUser.location.toUpperCase()}</span>
-                  </div>
-                ) : (
-                  <div style={{ border: '1.5px solid #D92D20', borderRadius: '2px', padding: '10px', background: 'rgba(217,45,32,0.05)' }}>
-                    <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '9px', color: '#D92D20', fontWeight: 700, letterSpacing: '0.05em', lineHeight: 1.4 }}>
-                      LOCATION NOT SET — IF THIS IS YOU, EDIT YOUR PROFILE AT FORG.TO TO ADD YOUR LOCATION AND APPEAR ON THE GLOBE.
-                    </div>
-                  </div>
-                )}
-
-                <p style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'11px', lineHeight:1.6, borderLeft:'2px solid #D92D20', paddingLeft:'12px', margin:0, fontStyle:'italic', color: isDarkMode ? 'rgba(255,255,255,0.6)' : '#475569' }}>
-                  &quot;{selectedUser.tagline}&quot;
-                </p>
-
-                <div style={{ height:'1px', background: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }} />
-
-                <div style={{ border:`1px solid ${isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`, borderRadius:'2px', padding:'12px', display:'flex', justifyContent:'space-between', alignItems:'center', background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }}>
-                  <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', textTransform:'uppercase', letterSpacing:'0.1em', color: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.4)', fontWeight:700 }}>PRODUCTS</span>
-                  <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'20px', fontWeight:700, color: isDarkMode ? '#f8fafc' : '#0f172a' }}>{selectedUser.productsCount}</span>
-                </div>
-
-                <a href={selectedUser.profileUrl} target="_blank" rel="noopener noreferrer" style={{ display:'block', width:'100%', background: isDarkMode ? '#f8fafc' : '#0f172a', color: isDarkMode ? '#0f172a' : '#f8fafc', fontFamily:"'IBM Plex Mono',monospace", fontSize:'11px', fontWeight:700, padding:'12px', textAlign:'center', textDecoration:'none', textTransform:'uppercase', letterSpacing:'0.15em', borderRadius:'2px' }}
-                  onMouseOver={e => (e.currentTarget.style.background = '#D92D20')}
-                  onMouseOut={e => (e.currentTarget.style.background = isDarkMode ? '#f8fafc' : '#0f172a')}
-                >
-                  VIEW PROFILE →
-                </a>
-              </div>
-            </>
-          )}
+          <ProfileWidget
+            user={selectedUser}
+            onClose={() => setSelectedUser(null)}
+            isDarkMode={isDarkMode}
+          />
         </main>
 
         {/* No-Location Builders Panel */}
@@ -454,7 +334,7 @@ export default function GlobeApp() {
         )}
 
         {/* Footer */}
-        <footer style={{ height:'32px', borderTop:`1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', textTransform:'uppercase', letterSpacing:'0.15em', color: isDarkMode ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.35)', background: isDarkMode ? '#000' : 'white' }}>
+        <footer style={{ height:'32px', borderTop: '1px solid rgba(255,255,255,0.1)', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', textTransform:'uppercase', letterSpacing:'0.15em', color: 'rgba(255,255,255,0.4)', background: '#050505' }}>
           <span>forg.to</span>
           <span>{selectedUser && selectedUser.lat && selectedUser.lng ? `{ LAT: ${selectedUser.lat.toFixed(4)}, LNG: ${selectedUser.lng.toFixed(4)} }` : ''}</span>
           <span>{BUILDER_DATA.length} builders</span>
