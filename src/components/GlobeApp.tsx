@@ -211,7 +211,7 @@ export default function GlobeApp() {
     return null
   }
 
-  const handleMarkerClick = (user: any) => {
+  const handleMarkerClick = async (user: any) => {
     if (!globeInstance.current) return
     setSelectedUser(null)
 
@@ -222,6 +222,22 @@ export default function GlobeApp() {
     if (coords) {
       globeInstance.current.pointOfView({ lat: coords.lat, lng: coords.lng, altitude: 1.4 }, 1200)
     }
+
+    // Fetch products if not present
+    if (!user.products && user.username) {
+      try {
+        const res = await fetch(`/api/forg/products?username=${user.username}`)
+        if (res.ok) {
+          const products = await res.json()
+          user.products = products.slice(0, 3) // Top 3
+          // Update the user in our builders list to cache it
+          setBuilders(prev => prev.map(b => b.username === user.username ? { ...b, products: user.products } : b))
+        }
+      } catch (err) {
+        console.error('Failed to fetch products for user:', user.username, err)
+      }
+    }
+
     setTimeout(() => setSelectedUser(user), 1200)
   }
 

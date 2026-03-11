@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const res = await fetch(`https://api.forg.to/v1/users/${username}/products`, {
+    const res = await fetch(`https://api.forg.to/api/v1/users/${username}/products`, {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
@@ -25,17 +25,12 @@ export async function GET(req: NextRequest) {
       if (res.status === 404) {
         return NextResponse.json({ error: 'User products not found' }, { status: 404 })
       }
-      if (res.status === 401) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
-      if (res.status === 429) {
-        return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
-      }
       return NextResponse.json({ error: 'Failed to fetch products' }, { status: res.status })
     }
 
-    const data = await res.json()
-    return NextResponse.json(data)
+    const json = await res.json()
+    // Products endpoint returns { data: [...], pagination: ... }
+    return NextResponse.json(json.data || json)
   } catch (err) {
     console.error('API Error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

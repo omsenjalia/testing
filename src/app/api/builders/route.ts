@@ -80,17 +80,22 @@ export async function GET() {
 
         if (geoJson && geoJson.length > 0) {
           const ownerInfo = ownersMap.get(username)!
+          // Add a small random jitter (approx 2-5km) to prevent perfect overlap for same-city locations
+          const jitter = () => (Math.random() - 0.5) * 0.08
+
           builders.push({
             id: userData.id || username,
             username: username,
             name: ownerInfo.displayName || username,
             avatar: ownerInfo.profileImage || "",
             location: userData.location,
-            lat: parseFloat(geoJson[0].lat),
-            lng: parseFloat(geoJson[0].lon),
+            lat: parseFloat(geoJson[0].lat) + jitter(),
+            lng: parseFloat(geoJson[0].lon) + jitter(),
             tagline: userData.bio || "",
             productsCount: ownerInfo.productsCount,
-            profileUrl: `https://forg.to/@${username}`
+            profileUrl: `https://forg.to/@${username}`,
+            isPremium: userData.isPremium,
+            stats: userData.stats
           })
         }
       } catch (err) {

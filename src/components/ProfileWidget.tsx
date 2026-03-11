@@ -124,13 +124,13 @@ export default function ProfileWidget({ user, onClose, isDarkMode }: ProfileWidg
 
         {user.products && user.products.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', textTransform:'uppercase', letterSpacing:'0.1em', color: 'rgba(255,255,255,0.4)', fontWeight:700 }}>TOP PRODUCTS</span>
+            <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', textTransform:'uppercase', letterSpacing:'0.1em', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', fontWeight:700 }}>TOP PRODUCTS</span>
             {user.products.map((p: any) => (
-              <div key={p.id} style={{ display: 'flex', gap: '10px', alignItems: 'center', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '2px', padding: '6px' }}>
-                <img src={p.logo || 'https://api.forg.to/logo.png'} style={{ width: '24px', height: '24px', borderRadius: '2px' }} alt={p.name} />
+              <div key={p.id} style={{ display: 'flex', gap: '10px', alignItems: 'center', border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`, borderRadius: '2px', padding: '6px' }}>
+                <img src={p.logo || 'https://api.forg.to/logo.png'} style={{ width: '24px', height: '24px', borderRadius: '2px', objectFit: 'cover' }} alt={p.name} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '11px', fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
-                  <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '9px', color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.tagline}</div>
+                  <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '11px', fontWeight: 700, color: isDarkMode ? '#f8fafc' : '#050505', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
+                  <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '9px', color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.tagline}</div>
                 </div>
                 <div style={{ fontSize: '8px', color: '#D92D20', fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace", textTransform: 'uppercase' }}>{p.status}</div>
               </div>
