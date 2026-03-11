@@ -39,6 +39,7 @@ export default function ProfileWidget({ user, onClose, isDarkMode }: ProfileWidg
   }
 
   const avatarSrc = user.profileImage || user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.displayName || user.name || user.username)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`
+  const userTagline = user.tagline || user.bio || "No tagline provided."
 
   return (
     <>
@@ -101,7 +102,7 @@ export default function ProfileWidget({ user, onClose, isDarkMode }: ProfileWidg
         )}
 
         <p style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'11px', lineHeight:1.6, borderLeft:'2px solid #D92D20', paddingLeft:'12px', margin:0, fontStyle:'italic', color: isDarkMode ? 'rgba(255,255,255,0.6)' : '#475569' }}>
-          &quot;{user.tagline}&quot;
+          &quot;{userTagline}&quot;
         </p>
 
         <div style={{ height:'1px', background: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }} />

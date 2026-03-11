@@ -86,16 +86,15 @@ export default function GlobeApp() {
           const el = document.createElement('div')
           el.style.cssText = 'position:relative;display:flex;flex-direction:column;align-items:center;cursor:pointer;pointer-events:auto;'
 
-          const avatarSrc = user.avatar
-            ? user.avatar
-            : `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`
+          const displayName = user.displayName || user.name || user.username
+          const avatarSrc = user.profileImage || user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`
 
           const avatarHtml = `
             <img
               src="${avatarSrc}"
-              alt="${user.name}"
+              alt="${displayName}"
               style="width:100%;height:100%;object-fit:cover;"
-              onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40'"
+              onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40'"
             />
           `
           el.innerHTML = `
@@ -103,7 +102,7 @@ export default function GlobeApp() {
               ${avatarHtml}
             </div>
             <div class="marker-tooltip" style="position:absolute;bottom:calc(100% + 6px);background:#D92D20;color:white;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:2px;white-space:nowrap;opacity:0;transition:opacity 0.2s;pointer-events:none;text-transform:uppercase;letter-spacing:0.05em;">
-              ${user.name}
+              ${displayName}
             </div>`
           const tooltip = el.querySelector('.marker-tooltip') as HTMLElement
           el.addEventListener('mouseenter', () => { if (tooltip) tooltip.style.opacity = '1' })
@@ -317,7 +316,7 @@ export default function GlobeApp() {
               </div>
 
               <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {BUILDER_DATA.filter(b => !b.lat || !b.lng).map(user => (
+                {BUILDER_DATA.filter(b => !b.lat || !b.lng).map((user: any) => (
                   <div
                     key={user.id}
                     onClick={() => {
@@ -329,14 +328,14 @@ export default function GlobeApp() {
                     onMouseLeave={(e) => (e.currentTarget.style.borderColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)')}
                   >
                     <img
-                      src={user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`}
+                      src={(user as any).profileImage || (user as any).avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent((user as any).displayName || user.name || user.username)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`}
                       style={{ width: '48px', height: '48px', borderRadius: '4px', objectFit: 'cover' }}
-                      alt={user.name}
+                      alt={(user as any).displayName || user.name}
                     />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '16px', textTransform: 'uppercase', color: isDarkMode ? '#fff' : '#000' }}>{user.name}</div>
+                      <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '16px', textTransform: 'uppercase', color: isDarkMode ? '#fff' : '#000' }}>{(user as any).displayName || user.name}</div>
                       <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '11px', color: '#D92D20', fontWeight: 700 }}>@{user.username}</div>
-                      <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', marginTop: '4px' }}>{user.tagline}</div>
+                      <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', marginTop: '4px' }}>{user.tagline || (user as any).bio}</div>
                     </div>
                   </div>
                 ))}

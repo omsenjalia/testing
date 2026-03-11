@@ -166,12 +166,12 @@ export default function SearchBar({ builders, onSelectUser, isDarkMode }: Search
               onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
             >
               <img
-                src={user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`}
+                src={user.profileImage || user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.displayName || user.name || user.username)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`}
                 style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #D92D20' }}
-                alt={user.name}
+                alt={user.displayName || user.name}
               />
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '13px', textTransform: 'uppercase', color: isDarkMode ? '#fff' : '#000' }}>{user.name}</div>
+                <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '13px', textTransform: 'uppercase', color: isDarkMode ? '#fff' : '#000' }}>{user.displayName || user.name}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', color: '#D92D20', fontWeight: 700 }}>@{user.username}</span>
                   <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '9px', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)' }}>{user.location}</span>
