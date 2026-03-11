@@ -8,21 +8,22 @@ A stunning, real-time 3D visualization of the **Forg** builder ecosystem. Explor
 
 - **Interactive 3D Globe**: Built with `globe.gl` and `Three.js` for smooth, immersive navigation.
 - **Real-Time API Integration**: Dynamically fetches active builders and products from the [Forg API](https://api.forg.to/docs).
-- **Smart Geocoding**: Converts free-text location strings from builder profiles into geographic coordinates via Nominatim.
-- **Unified Search**: Quickly find builders by name, username, or location.
-- **Dynamic Themes**: Toggle between high-contrast **Dark Mode** and clean **Light Mode** with synchronized globe textures (NASA Blue Marble / Earth Night).
-- **Responsive Profile Widgets**: View builder stats, products, and bios with a single click.
+- **Smart Geocoding**: Converts free-text location strings from builder profiles into geographic coordinates via OpenStreetMap Nominatim.
+- **Deduplicated Data**: Intelligent server-side aggregation ensures unique builders are identified across all products.
+- **Contextual Search**: Find builders by name, username, or location. Real-time feedback for builders with "Unknown Locations".
+- **Dynamic Themes**: Toggle between high-contrast **Dark Mode** and clean **Light Mode** with synchronized globe textures.
+- **Rich Profile Widgets**: View real-time builder stats and their top products/projects with a single click.
 
 ## 🛠️ Architecture
 
 ### Frontend
 - **Framework**: Next.js 15 (App Router)
 - **3D Engine**: `react-globe.gl` / `Three.js`
-- **Styling**: Inline React styles with a 'New Brutalism' aesthetic (Anton & IBM Plex Mono typography).
+- **Typography**: Anton (Display) & IBM Plex Mono (Data/UI)
 - **Components**: Dynamic client-side rendering for optimal 3D performance.
 
-### Backend (Proxy Routes)
-- `/api/builders`: The core engine. It fetches products, extracts unique builders, retrieves full profiles, and performs rate-limited geocoding.
+### Backend (API Routes)
+- `/api/builders`: The core data engine. It aggregates builders from the products list, retrieves full profiles, and performs rate-limited geocoding.
 - `/api/forg/user`: Proxy for individual profile lookups.
 - `/api/forg/products`: Proxy for user-specific product lists.
 

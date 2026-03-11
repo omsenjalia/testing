@@ -123,10 +123,10 @@ export default function SearchBar({ builders, onSelectUser, isDarkMode, onOpenNo
       {isFocused && (noLocation || (query.length > 0 && builders.filter(b => (!b.lat || !b.lng) && (b.name.toLowerCase().includes(query.toLowerCase()) || b.username.toLowerCase().includes(query.toLowerCase()))).length > 0)) && (
         <div
           onClick={onOpenNoLocation}
-          style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', color: '#D92D20', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+          style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', color: '#D92D20', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(217,45,32,0.05)', padding: '2px 8px', borderRadius: '2px' }}
         >
           <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#D92D20' }} />
-          LOCATION UNAVAILABLE
+          SOME BUILDERS HAVE NO LOCATION SET
         </div>
       )}
 
