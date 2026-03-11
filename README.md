@@ -24,6 +24,18 @@ You can start editing the page by modifying `src/app/page.tsx`. The page auto-up
 
 The main globe logic is in `src/components/GlobeApp.tsx`.
 
+## Environment Variables
+
+This project requires the following environment variables:
+
+- `FORG_API_KEY`: Your forg.to API key. This is required for fetching builder profiles and products from the forg.to API.
+
+Create a `.env.local` file in the root directory and add your API key:
+
+```env
+FORG_API_KEY=your_api_key_here
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
