@@ -19,6 +19,7 @@ export default function GlobeApp() {
   const [builderCountries, setBuilderCountries] = useState<Set<string>>(new Set())
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [isDarkMode, setIsDarkMode] = useState(true)
   const [isNoLocationPanelOpen, setIsNoLocationPanelOpen] = useState(false)
   const globeContainerRef = useRef<HTMLDivElement>(null)
@@ -26,39 +27,29 @@ export default function GlobeApp() {
 
   const fetchBuilders = async () => {
     try {
-      const res = await fetch('/api/forg/builders')
+      const res = await fetch('/api/builders')
       if (res.ok) {
         const data = await res.json()
-        if (Array.isArray(data)) {
-          // Geocode builders based on location string
-          const geocodedBuilders = data.map((b: any) => {
-            const coords = getLatLngFromLocation(b.location)
-            return {
-              ...b,
-              lat: b.lat || (coords ? coords.lat : null),
-              lng: b.lng || (coords ? coords.lng : null)
-            }
-          })
+        const fetchedBuilders = data.builders || []
+        setBuilders(fetchedBuilders)
 
-          setBuilders(geocodedBuilders)
-
-          // Extract country codes
-          const countries = new Set<string>()
-          geocodedBuilders.forEach((b: any) => {
-            if (b.countryCode) countries.add(b.countryCode)
-          })
-          setBuilderCountries(countries)
-          if (geocodedBuilders.length === 0) setLoading(false)
-        } else {
-          console.error('Expected array of builders, got:', data)
-          setLoading(false)
-        }
+        // Extract country names/codes for highlighting
+        const countries = new Set<string>()
+        fetchedBuilders.forEach((b: any) => {
+          const parts = b.location.split(',')
+          const countryName = parts[parts.length - 1].trim()
+          countries.add(countryName)
+          // Also add some common mappings to ISO
+          const mapping: Record<string, string> = { 'USA': 'USA', 'United States': 'USA', 'UK': 'GBR', 'United Kingdom': 'GBR', 'India': 'IND', 'Vietnam': 'VNM', 'France': 'FRA', 'Germany': 'DEU', 'Nigeria': 'NGA', 'Canada': 'CAN', 'South Africa': 'ZAF' }
+          if (mapping[countryName]) countries.add(mapping[countryName])
+        })
+        setBuilderCountries(countries)
       } else {
-        console.error('Failed to fetch builders:', res.status)
-        setLoading(false)
+        setError('Failed to load builders')
       }
-    } catch (err) {
-      console.error('Failed to fetch builders:', err)
+    } catch {
+      setError('An unexpected error occurred')
+    } finally {
       setLoading(false)
     }
   }
@@ -80,20 +71,24 @@ export default function GlobeApp() {
         // Country overlays on top of texture
         .polygonsData(countries.features)
         .polygonAltitude((d: any) => {
+          const name = d.properties.NAME || d.properties.ADMIN
           const code = d.properties.ISO_A3 || d.properties.ADM0_A3
-          return builderCountries.has(code) ? 0.04 : 0.005
+          return builderCountries.has(name) || builderCountries.has(code) ? 0.04 : 0.005
         })
         .polygonCapColor((d: any) => {
+          const name = d.properties.NAME || d.properties.ADMIN
           const code = d.properties.ISO_A3 || d.properties.ADM0_A3
-          return builderCountries.has(code) ? 'rgba(217,45,32,0.35)' : 'rgba(0,0,0,0)'
+          return builderCountries.has(name) || builderCountries.has(code) ? 'rgba(217,45,32,0.35)' : 'rgba(0,0,0,0)'
         })
         .polygonSideColor((d: any) => {
+          const name = d.properties.NAME || d.properties.ADMIN
           const code = d.properties.ISO_A3 || d.properties.ADM0_A3
-          return builderCountries.has(code) ? 'rgba(217,45,32,0.2)' : 'rgba(0,0,0,0)'
+          return builderCountries.has(name) || builderCountries.has(code) ? 'rgba(217,45,32,0.2)' : 'rgba(0,0,0,0)'
         })
         .polygonStrokeColor((d: any) => {
+          const name = d.properties.NAME || d.properties.ADMIN
           const code = d.properties.ISO_A3 || d.properties.ADM0_A3
-          return builderCountries.has(code) ? '#D92D20' : 'rgba(255,255,255,0.1)'
+          return builderCountries.has(name) || builderCountries.has(code) ? '#D92D20' : 'rgba(255,255,255,0.1)'
         })
         // Avatar markers
         .htmlElementsData(builders.filter(u => u.lat && u.lng))
@@ -305,8 +300,16 @@ export default function GlobeApp() {
           </aside>
 
           {loading && (
-            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'IBM Plex Mono',monospace", fontSize:'12px', letterSpacing:'0.1em', zIndex:10, color: isDarkMode ? '#f8fafc' : '#050505', background: isDarkMode ? '#050505' : '#f8fafc' }}>
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection: 'column', gap: '16px', alignItems:'center', justifyContent:'center', fontFamily:"'IBM Plex Mono',monospace", fontSize:'12px', letterSpacing:'0.1em', zIndex:10, color: isDarkMode ? '#f8fafc' : '#050505', background: isDarkMode ? '#050505' : '#f8fafc' }}>
+              <div style={{ width: '32px', height: '32px', border: '2.5px solid #D92D20', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
               LOADING BUILDERS...
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+          )}
+
+          {error && (
+            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'IBM Plex Mono',monospace", fontSize:'12px', letterSpacing:'0.1em', zIndex:10, color: '#D92D20', background: isDarkMode ? '#050505' : '#f8fafc' }}>
+              {error.toUpperCase()}
             </div>
           )}
           <div ref={globeContainerRef} style={{ width:'100%', height:'100%' }} />
