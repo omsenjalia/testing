@@ -8,29 +8,6 @@ import AdSlot from './AdSlot'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const BUILDER_DATA = [
-  { id: '1', username: 'kislay', name: 'Kislay', avatar: 'https://res.cloudinary.com/dxkpmcrel/image/upload/v1772955240/buildinprocess/profiles/user_69798b91b7529f4a0815a9a3.jpg', location: 'Bengaluru, India', lat: 12.9716, lng: 77.5946, tagline: 'Building Forg — OS for founders', productsCount: 3, profileUrl: 'https://buildinprocess.com/@kislay' },
-  { id: '2', username: 'riteshsinha4146', name: 'Ritesh Sinha', avatar: 'https://res.cloudinary.com/dxkpmcrel/image/upload/v1772811750/buildinprocess/profiles/user_69a72c5babafc5dc195e2ba1.jpg', location: 'Mumbai, India', lat: 19.076, lng: 72.8777, tagline: 'Shipping WeKraft', productsCount: 1, profileUrl: 'https://buildinprocess.com/@riteshsinha4146' },
-  { id: '3', username: 'henry', name: 'Henry', avatar: 'https://res.cloudinary.com/dxkpmcrel/image/upload/v1772811738/buildinprocess/profiles/user_6979721df3a7a996a2defc3d.jpg', location: 'London, UK', lat: 51.5074, lng: -0.1278, tagline: 'Indie hacker. Building in public since 2023.', productsCount: 2, profileUrl: 'https://buildinprocess.com/@henry' },
-  { id: '4', username: 'aditi_rajj23', name: 'Aditi Raj', avatar: 'https://res.cloudinary.com/dxkpmcrel/image/upload/v1772811744/buildinprocess/profiles/user_697e2945331d39ba9d828b49.jpg', location: 'Delhi, India', lat: 28.6139, lng: 77.209, tagline: 'Designer-turned-founder.', productsCount: 1, profileUrl: 'https://buildinprocess.com/@aditi_rajj23' },
-  { id: '5', username: 'pirolla40', name: 'Paul Irolla', avatar: 'https://res.cloudinary.com/dxkpmcrel/image/upload/v1772811745/buildinprocess/profiles/user_69878dd9482fb1b8b261fc9e.jpg', location: 'Paris, France', lat: 48.8566, lng: 2.3522, tagline: 'Solo founder. Ex-agency. Now ships fast.', productsCount: 2, profileUrl: 'https://buildinprocess.com/@pirolla40' },
-  { id: '6', username: 'duongphudong', name: 'Dong Phu Duong', avatar: '', location: 'Ho Chi Minh City, Vietnam', lat: 10.8231, lng: 106.6297, tagline: 'Building SaaS tools for SE Asia.', productsCount: 1, profileUrl: 'https://buildinprocess.com/@duongphudong' },
-  { id: '7', username: 'mostypc7', name: 'Juraj Kollar', avatar: '', location: 'Bratislava, Slovakia', lat: 48.1486, lng: 17.1077, tagline: 'PC builder and dev.', productsCount: 2, profileUrl: 'https://buildinprocess.com/@mostypc7' },
-  { id: '8', username: 'calchiwo', name: 'Caleb Wodi', avatar: '', location: 'Lagos, Nigeria', lat: 6.5244, lng: 3.3792, tagline: 'Bootstrapped. Building African fintech tools.', productsCount: 1, profileUrl: 'https://buildinprocess.com/@calchiwo' },
-  { id: '9', username: 'abdulroqeeboladipo', name: 'Oladipo Abdulroqib', avatar: '', location: 'Abuja, Nigeria', lat: 9.0579, lng: 7.4951, tagline: 'Full-stack dev. Shipping one thing at a time.', productsCount: 1, profileUrl: 'https://buildinprocess.com/@abdulroqeeboladipo' },
-  { id: '10', username: 'lincolnlesola567', name: 'Lincoln Lesola', avatar: '', location: 'Cape Town, South Africa', lat: -33.9249, lng: 18.4241, tagline: 'Building dev tools for African startups.', productsCount: 1, profileUrl: 'https://buildinprocess.com/@lincolnlesola567' },
-  { id: '11', username: 'maxim.bort.devel', name: 'Maxim Bortnikov', avatar: '', location: 'Berlin, Germany', lat: 52.52, lng: 13.405, tagline: 'Open source contributor.', productsCount: 3, profileUrl: 'https://buildinprocess.com/@maxim.bort.devel' },
-  { id: '12', username: 'thesukhjitbajwa', name: 'Sukhjit Bajwa', avatar: '', location: 'Toronto, Canada', lat: 43.6532, lng: -79.3832, tagline: 'Canadian indie hacker. SaaS + no-code.', productsCount: 2, profileUrl: 'https://buildinprocess.com/@thesukhjitbajwa' },
-  { id: '13', username: 'pradeepyad089', name: 'Pradeep Yadav', avatar: '', location: 'Pune, India', lat: 18.5204, lng: 73.8567, tagline: 'Backend engineer shipping side projects.', productsCount: 1, profileUrl: 'https://buildinprocess.com/@pradeepyad089' },
-  { id: '14', username: 'pastable', name: 'Kit Pastable', avatar: '', location: 'San Francisco, USA', lat: 37.7749, lng: -122.4194, tagline: 'Building Pastable.', productsCount: 1, profileUrl: 'https://buildinprocess.com/@pastable' },
-  { id: '15', username: 'suresh', name: 'Suresh', avatar: '', location: 'Chennai, India', lat: 13.0827, lng: 80.2707, tagline: 'AI SEO tools.', productsCount: 2, profileUrl: 'https://buildinprocess.com/@suresh' },
-  { id: '16', username: 'ghost_builder', name: 'Ghost Builder', avatar: '', location: 'Unknown', lat: null, lng: null, tagline: 'Building in the shadows.', productsCount: 0, profileUrl: 'https://buildinprocess.com/@ghost_builder' },
-  { id: '17', username: 'nomad_dev', name: 'Nomad Dev', avatar: '', location: 'Everywhere', lat: null, lng: null, tagline: 'Digital nomad shipping from cafes.', productsCount: 4, profileUrl: 'https://buildinprocess.com/@nomad_dev' },
-  { id: '18', username: 'hidden_gem', name: 'Hidden Gem', avatar: '', location: 'Classified', lat: null, lng: null, tagline: 'Stealth mode startup founder.', productsCount: 1, profileUrl: 'https://buildinprocess.com/@hidden_gem' },
-]
-
-
-const BUILDER_COUNTRIES = new Set(['IND', 'GBR', 'FRA', 'DEU', 'NGA', 'ZAF', 'SVK', 'VNM', 'CAN', 'USA'])
 
 const DAY_TEXTURE = 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg'
 const NIGHT_TEXTURE = 'https://unpkg.com/three-globe/example/img/earth-night.jpg'
@@ -38,12 +15,53 @@ const BUMP_TEXTURE = 'https://unpkg.com/three-globe/example/img/earth-topology.p
 const COUNTRIES_GEOJSON = 'https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson'
 
 export default function GlobeApp() {
+  const [builders, setBuilders] = useState<any[]>([])
+  const [builderCountries, setBuilderCountries] = useState<Set<string>>(new Set())
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(true)
   const [isNoLocationPanelOpen, setIsNoLocationPanelOpen] = useState(false)
   const globeContainerRef = useRef<HTMLDivElement>(null)
   const globeInstance = useRef<any>(null)
+
+  const fetchBuilders = async () => {
+    try {
+      const res = await fetch('/api/forg/builders')
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data)) {
+          // Geocode builders based on location string
+          const geocodedBuilders = data.map((b: any) => {
+            const coords = getLatLngFromLocation(b.location)
+            return {
+              ...b,
+              lat: b.lat || (coords ? coords.lat : null),
+              lng: b.lng || (coords ? coords.lng : null)
+            }
+          })
+
+          setBuilders(geocodedBuilders)
+
+          // Extract country codes
+          const countries = new Set<string>()
+          geocodedBuilders.forEach((b: any) => {
+            if (b.countryCode) countries.add(b.countryCode)
+          })
+          setBuilderCountries(countries)
+          if (geocodedBuilders.length === 0) setLoading(false)
+        } else {
+          console.error('Expected array of builders, got:', data)
+          setLoading(false)
+        }
+      } else {
+        console.error('Failed to fetch builders:', res.status)
+        setLoading(false)
+      }
+    } catch (err) {
+      console.error('Failed to fetch builders:', err)
+      setLoading(false)
+    }
+  }
 
   const initGlobe = async () => {
     if (!globeContainerRef.current || !(window as any).Globe) return
@@ -63,22 +81,22 @@ export default function GlobeApp() {
         .polygonsData(countries.features)
         .polygonAltitude((d: any) => {
           const code = d.properties.ISO_A3 || d.properties.ADM0_A3
-          return BUILDER_COUNTRIES.has(code) ? 0.04 : 0.005
+          return builderCountries.has(code) ? 0.04 : 0.005
         })
         .polygonCapColor((d: any) => {
           const code = d.properties.ISO_A3 || d.properties.ADM0_A3
-          return BUILDER_COUNTRIES.has(code) ? 'rgba(217,45,32,0.35)' : 'rgba(0,0,0,0)'
+          return builderCountries.has(code) ? 'rgba(217,45,32,0.35)' : 'rgba(0,0,0,0)'
         })
         .polygonSideColor((d: any) => {
           const code = d.properties.ISO_A3 || d.properties.ADM0_A3
-          return BUILDER_COUNTRIES.has(code) ? 'rgba(217,45,32,0.2)' : 'rgba(0,0,0,0)'
+          return builderCountries.has(code) ? 'rgba(217,45,32,0.2)' : 'rgba(0,0,0,0)'
         })
         .polygonStrokeColor((d: any) => {
           const code = d.properties.ISO_A3 || d.properties.ADM0_A3
-          return BUILDER_COUNTRIES.has(code) ? '#D92D20' : 'rgba(255,255,255,0.1)'
+          return builderCountries.has(code) ? '#D92D20' : 'rgba(255,255,255,0.1)'
         })
         // Avatar markers
-        .htmlElementsData(BUILDER_DATA.filter(u => u.lat && u.lng))
+        .htmlElementsData(builders.filter(u => u.lat && u.lng))
         .htmlLat('lat')
         .htmlLng('lng')
         .htmlAltitude(0.06)
@@ -130,8 +148,15 @@ export default function GlobeApp() {
     }
   }
 
-  // Load globe.gl script
+  // Fetch builders on mount
   useEffect(() => {
+    fetchBuilders()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Load globe.gl script once builders are loaded
+  useEffect(() => {
+    if (loading && builders.length === 0) return
     if ((window as any).Globe) { initGlobe(); return; }
     const script = document.createElement('script')
     script.src = 'https://unpkg.com/globe.gl'
@@ -140,7 +165,7 @@ export default function GlobeApp() {
     document.body.appendChild(script)
     return () => { if (document.body.contains(script)) document.body.removeChild(script) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [builders])
 
   // Theme switch — update texture and background
   useEffect(() => {
@@ -240,23 +265,15 @@ export default function GlobeApp() {
 
           <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '12px' }}>
             <SearchBar
-              builders={BUILDER_DATA}
+              builders={builders}
               onSelectUser={(user) => handleMarkerClick(user)}
               isDarkMode={isDarkMode}
+              onOpenNoLocation={() => setIsNoLocationPanelOpen(true)}
             />
           </div>
 
           <div style={{ display:'flex', alignItems:'center', gap:'24px' }}>
             <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-              <div
-                onClick={() => setIsNoLocationPanelOpen(true)}
-                style={{ cursor:'pointer', background:'#D92D20', color:'white', fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', fontWeight:700, padding:'4px 8px', borderRadius:'2px', letterSpacing:'0.05em', display:'flex', alignItems:'center', gap:'6px' }}
-                onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.05)')}
-                onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
-              >
-                ? {BUILDER_DATA.filter(b => !b.lat || !b.lng).length} BUILDERS — LOCATION UNKNOWN
-              </div>
-
               {/* Theme Toggle */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)' }}>
@@ -269,7 +286,7 @@ export default function GlobeApp() {
 
               <div style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'10px', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', gap:'6px' }}>
                 <div style={{ width:'6px', height:'6px', borderRadius:'50%', background:'#D92D20' }} />
-                {BUILDER_DATA.length} builders
+                {builders.length} builders
               </div>
             </div>
           </div>
@@ -316,7 +333,7 @@ export default function GlobeApp() {
               </div>
 
               <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {BUILDER_DATA.filter(b => !b.lat || !b.lng).map((user: any) => (
+                {builders.filter(b => !b.lat || !b.lng).map((user: any) => (
                   <div
                     key={user.id}
                     onClick={() => {
@@ -348,7 +365,7 @@ export default function GlobeApp() {
         <footer style={{ height:'32px', borderTop: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', textTransform:'uppercase', letterSpacing:'0.15em', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', background: isDarkMode ? '#050505' : '#f8fafc' }}>
           <span>forg.to</span>
           <span>{selectedUser && selectedUser.lat && selectedUser.lng ? `{ LAT: ${selectedUser.lat.toFixed(4)}, LNG: ${selectedUser.lng.toFixed(4)} }` : ''}</span>
-          <span>{BUILDER_DATA.length} builders</span>
+          <span>{builders.length} builders</span>
         </footer>
       </div>
     </>

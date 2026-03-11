@@ -9,9 +9,10 @@ interface SearchBarProps {
   builders: any[]
   onSelectUser: (user: any) => void
   isDarkMode: boolean
+  onOpenNoLocation: () => void
 }
 
-export default function SearchBar({ builders, onSelectUser, isDarkMode }: SearchBarProps) {
+export default function SearchBar({ builders, onSelectUser, isDarkMode, onOpenNoLocation }: SearchBarProps) {
   const [query, setQuery] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -119,9 +120,13 @@ export default function SearchBar({ builders, onSelectUser, isDarkMode }: Search
       />
       </form>
 
-      {noLocation && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>
-          No location available for this builder.
+      {isFocused && (noLocation || (query.length > 0 && builders.filter(b => (!b.lat || !b.lng) && (b.name.toLowerCase().includes(query.toLowerCase()) || b.username.toLowerCase().includes(query.toLowerCase()))).length > 0)) && (
+        <div
+          onClick={onOpenNoLocation}
+          style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', color: '#D92D20', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+        >
+          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#D92D20' }} />
+          LOCATION UNAVAILABLE
         </div>
       )}
 
