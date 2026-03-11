@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
@@ -209,21 +210,21 @@ export default function GlobeApp() {
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
-        body { margin:0; overflow:hidden; font-family:'IBM Plex Mono',monospace; background: #050505; transition: background 0.5s; color: #f8fafc; }
+        body { margin:0; overflow:hidden; font-family:'IBM Plex Mono',monospace; background: ${isDarkMode ? '#050505' : '#f8fafc'}; transition: background 0.5s; color: ${isDarkMode ? '#f8fafc' : '#050505'}; }
         * { box-sizing:border-box; }
         ::-webkit-scrollbar { width:4px; }
-        ::-webkit-scrollbar-thumb { background:#1A1A1A; }
+        ::-webkit-scrollbar-thumb { background:${isDarkMode ? '#1A1A1A' : '#e2e8f0'}; }
         .toggle-btn { position:relative;width:44px;height:22px;background:${isDarkMode ? '#222' : '#e2e8f0'};border-radius:11px;cursor:pointer;border:1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};transition:all 0.3s; }
         .toggle-dot { position:absolute;top:2px;left:${isDarkMode ? '24px' : '2px'};width:16px;height:16px;background:${isDarkMode ? '#f8fafc' : '#64748b'};border-radius:50%;transition:all 0.3s cubic-bezier(0.4,0,0.2,1); }
-        .ad-sidebar { position:fixed; top:56px; bottom:32px; width:180px; z-index:20; display:flex; flex-direction:column; gap:20px; background: rgba(5,5,5,0.6); backdrop-filter: blur(4px); padding-top: 40px; }
+        .ad-sidebar { position:fixed; top:56px; bottom:32px; width:180px; z-index:20; display:flex; flex-direction:column; gap:20px; background: ${isDarkMode ? 'rgba(5,5,5,0.6)' : 'rgba(248,250,252,0.6)'}; backdrop-filter: blur(4px); padding-top: 40px; }
         @media (max-width: 768px) { .ad-sidebar { display: none; } }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
       `}</style>
 
-      <div style={{ display:'flex', flexDirection:'column', height:'100vh', width:'100%', background: '#050505', color: '#f8fafc' }}>
+      <div style={{ display:'flex', flexDirection:'column', height:'100vh', width:'100%', background: isDarkMode ? '#050505' : '#f8fafc', color: isDarkMode ? '#f8fafc' : '#050505' }}>
 
         {/* Header */}
-        <header style={{ position:'fixed', top:0, left:0, right:0, height:'56px', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(5,5,5,0.8)', backdropFilter:'blur(8px)', zIndex:30, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px' }}>
+        <header style={{ position:'fixed', top:0, left:0, right:0, height:'56px', borderBottom: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, background: isDarkMode ? 'rgba(5,5,5,0.8)' : 'rgba(248,250,252,0.8)', backdropFilter:'blur(8px)', zIndex:30, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px' }}>
           <div style={{ display:'flex', alignItems: 'center' }}>
             <a href="https://forg.to" target="_blank" rel="noopener noreferrer" style={{ display:'flex', alignItems:'center', gap:'12px', textDecoration:'none' }}>
               <img src="https://api.forg.to/logo.png" alt="forg.to" style={{ height:'24px', width:'auto' }} />
@@ -231,7 +232,7 @@ export default function GlobeApp() {
                 <div style={{ color:'#D92D20', fontFamily:"'IBM Plex Mono',monospace", fontSize:'10px', fontWeight:700, letterSpacing:'0.2em', textTransform:'uppercase', marginBottom:'3px' }}>
                   FORG
                 </div>
-                <h1 style={{ fontFamily:"'Anton',Impact,sans-serif", fontSize:'22px', lineHeight:1, letterSpacing:'0.1em', textTransform:'uppercase', margin:0, color: '#f8fafc' }}>
+                <h1 style={{ fontFamily:"'Anton',Impact,sans-serif", fontSize:'22px', lineHeight:1, letterSpacing:'0.1em', textTransform:'uppercase', margin:0, color: isDarkMode ? '#f8fafc' : '#050505' }}>
                   GLOBE
                 </h1>
               </div>
@@ -256,6 +257,17 @@ export default function GlobeApp() {
               >
                 ? {BUILDER_DATA.filter(b => !b.lat || !b.lng).length} BUILDERS — LOCATION UNKNOWN
               </div>
+
+              {/* Theme Toggle */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)' }}>
+                  {isDarkMode ? 'DARK' : 'LIGHT'}
+                </span>
+                <div className="toggle-btn" onClick={() => setIsDarkMode(!isDarkMode)}>
+                  <div className="toggle-dot" />
+                </div>
+              </div>
+
               <div style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:'10px', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', gap:'6px' }}>
                 <div style={{ width:'6px', height:'6px', borderRadius:'50%', background:'#D92D20' }} />
                 {BUILDER_DATA.length} builders
@@ -267,17 +279,17 @@ export default function GlobeApp() {
         {/* Globe */}
         <main style={{ marginTop:'56px', flex:1, position:'relative', overflow:'hidden' }}>
           {/* Left Sidebar */}
-          <aside className="ad-sidebar" style={{ left: 0, borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+          <aside className="ad-sidebar" style={{ left: 0, borderRight: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}` }}>
             <AdSlot isDarkMode={isDarkMode} />
           </aside>
 
           {/* Right Sidebar */}
-          <aside className="ad-sidebar" style={{ right: 0, borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
+          <aside className="ad-sidebar" style={{ right: 0, borderLeft: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}` }}>
             <AdSlot isDarkMode={isDarkMode} />
           </aside>
 
           {loading && (
-            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'IBM Plex Mono',monospace", fontSize:'12px', letterSpacing:'0.1em', zIndex:10, color: '#f8fafc', background: '#050505' }}>
+            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'IBM Plex Mono',monospace", fontSize:'12px', letterSpacing:'0.1em', zIndex:10, color: isDarkMode ? '#f8fafc' : '#050505', background: isDarkMode ? '#050505' : '#f8fafc' }}>
               LOADING BUILDERS...
             </div>
           )}
@@ -334,7 +346,7 @@ export default function GlobeApp() {
         )}
 
         {/* Footer */}
-        <footer style={{ height:'32px', borderTop: '1px solid rgba(255,255,255,0.1)', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', textTransform:'uppercase', letterSpacing:'0.15em', color: 'rgba(255,255,255,0.4)', background: '#050505' }}>
+        <footer style={{ height:'32px', borderTop: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', fontFamily:"'IBM Plex Mono',monospace", fontSize:'9px', textTransform:'uppercase', letterSpacing:'0.15em', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', background: isDarkMode ? '#050505' : '#f8fafc' }}>
           <span>forg.to</span>
           <span>{selectedUser && selectedUser.lat && selectedUser.lng ? `{ LAT: ${selectedUser.lat.toFixed(4)}, LNG: ${selectedUser.lng.toFixed(4)} }` : ''}</span>
           <span>{BUILDER_DATA.length} builders</span>
