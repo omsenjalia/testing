@@ -179,7 +179,9 @@ export default function SearchBar({ builders, onSelectUser, isDarkMode, onOpenNo
                 <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '13px', textTransform: 'uppercase', color: isDarkMode ? '#fff' : '#000' }}>{user.displayName || user.name}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', color: '#D92D20', fontWeight: 700 }}>@{user.username}</span>
-                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '9px', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)' }}>{user.location}</span>
+                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '9px', color: (!user.lat || !user.lng) ? '#D92D20' : (isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), fontWeight: (!user.lat || !user.lng) ? 700 : 400 }}>
+                    {(!user.lat || !user.lng) ? 'LOCATION UNAVAILABLE' : user.location}
+                  </span>
                 </div>
               </div>
             </div>
