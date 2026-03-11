@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
@@ -8,9 +9,10 @@ interface SearchBarProps {
   builders: any[]
   onSelectUser: (user: any) => void
   isDarkMode: boolean
+  onOpenNoLocation: () => void
 }
 
-export default function SearchBar({ builders, onSelectUser, isDarkMode }: SearchBarProps) {
+export default function SearchBar({ builders, onSelectUser, isDarkMode, onOpenNoLocation }: SearchBarProps) {
   const [query, setQuery] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -118,9 +120,13 @@ export default function SearchBar({ builders, onSelectUser, isDarkMode }: Search
       />
       </form>
 
-      {noLocation && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>
-          No location available for this builder.
+      {isFocused && (noLocation || (query.length > 0 && builders.filter(b => (!b.lat || !b.lng) && (b.name.toLowerCase().includes(query.toLowerCase()) || b.username.toLowerCase().includes(query.toLowerCase()))).length > 0)) && (
+        <div
+          onClick={onOpenNoLocation}
+          style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', color: '#D92D20', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(217,45,32,0.05)', padding: '2px 8px', borderRadius: '2px' }}
+        >
+          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#D92D20' }} />
+          SOME BUILDERS HAVE NO LOCATION SET
         </div>
       )}
 
@@ -165,15 +171,17 @@ export default function SearchBar({ builders, onSelectUser, isDarkMode }: Search
               onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
             >
               <img
-                src={user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`}
+                src={user.profileImage || user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.displayName || user.name || user.username)}&backgroundColor=1a1a1a&textColor=ffffff&fontSize=40`}
                 style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #D92D20' }}
-                alt={user.name}
+                alt={user.displayName || user.name}
               />
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '13px', textTransform: 'uppercase', color: isDarkMode ? '#fff' : '#000' }}>{user.name}</div>
+                <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '13px', textTransform: 'uppercase', color: isDarkMode ? '#fff' : '#000' }}>{user.displayName || user.name}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '10px', color: '#D92D20', fontWeight: 700 }}>@{user.username}</span>
-                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '9px', color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)' }}>{user.location}</span>
+                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '9px', color: (!user.lat || !user.lng) ? '#D92D20' : (isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), fontWeight: (!user.lat || !user.lng) ? 700 : 400 }}>
+                    {(!user.lat || !user.lng) ? 'LOCATION UNAVAILABLE' : user.location}
+                  </span>
                 </div>
               </div>
             </div>
