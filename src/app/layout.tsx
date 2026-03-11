@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Builder Globe | BuildInProcess",
-  description: "A globe of builders building in process",
+  title: "Globe | Forg",
+  description: "A globe of founders and builders shipping in public on Forg.",
 };
 
 export default function RootLayout({
